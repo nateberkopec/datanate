@@ -1,0 +1,67 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift(__dir__)
+
+require 'metric_parser'
+require 'tier_calculator'
+require 'metric_data'
+require 'dashboard_generator'
+
+class Datanate
+  def self.generate(config_file: 'metrics.yaml', output_dir: 'dist')
+    # Adjust paths when running from lib directory
+    if __FILE__ == $0
+      config_file = File.join('..', config_file) unless File.exist?(config_file)
+      output_dir = File.join('..', output_dir) unless File.absolute_path(output_dir) == output_dir
+    end
+    
+    new(config_file, output_dir).generate
+  end
+
+  def initialize(config_file, output_dir)
+    @config_file = config_file
+    @output_dir = output_dir
+  end
+
+  def generate
+    ensure_output_dir
+    
+    # Parse configuration and CSV data
+    parser = MetricParser.new(@config_file)
+    metrics_data = parser.parse_all_metrics
+    config = parser.config
+    
+    # Calculate metric tiers
+    tier_calculator = TierCalculator.new(config['metrics'])
+    tiers = tier_calculator.calculate_tiers
+    
+    # Prepare data for dashboard
+    metric_data = MetricData.new(metrics_data, config, tiers)
+    
+    # Generate HTML
+    generator = DashboardGenerator.new(metric_data, config)
+    html_content = generator.generate_html
+    
+    # Write output
+    output_file = File.join(@output_dir, 'index.html')
+    File.write(output_file, html_content)
+    
+    report_success(output_file, metrics_data.keys)
+  end
+
+  private
+
+  def ensure_output_dir
+    Dir.mkdir(@output_dir) unless Dir.exist?(@output_dir)
+  end
+
+  def report_success(output_file, metric_ids)
+    puts "Dashboard generated successfully!"
+    puts "Output: #{output_file}"
+    puts "Metrics processed: #{metric_ids.join(', ')}"
+  end
+end
+
+if __FILE__ == $0
+  Datanate.generate
+end

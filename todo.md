@@ -6,3 +6,4 @@ Github repo with actions setup
 Publish behind basic authentication via Cloudflare Pages, HTTP basic auth via Cloudflare WOrker
 SLOs
 Automatic integrations
+

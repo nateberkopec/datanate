@@ -1,8 +1,9 @@
-require_relative 'generate'
+$LOAD_PATH.unshift(File.expand_path('lib', __dir__))
+require 'datanate'
 
 desc "Generate the metrics dashboard"
 task :generate do
-  MetricsDashboard.generate
+  Datanate.generate
 end
 
 task default: :generate
