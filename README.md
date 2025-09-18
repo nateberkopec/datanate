@@ -12,8 +12,8 @@ Personal metrics dashboard that models life activities as interconnected metrics
 2. **Set up your data:**
    ```bash
    # Option 1: Link to a local repository (symlink)
-   ln -s ../your-private-metrics-data csv
-   
+   ln -s ../your-private-metrics-data/* csv
+
    # Option 2: Add a remote GitHub repository as a submodule
    git submodule add https://github.com/yourusername/your-private-metrics-data.git csv
    git submodule update --init --recursive
