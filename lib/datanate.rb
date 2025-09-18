@@ -24,6 +24,7 @@ class Datanate
   end
 
   def generate
+    ensure_csv_dir
     ensure_output_dir
     
     # Parse configuration and CSV data
@@ -50,6 +51,22 @@ class Datanate
   end
 
   private
+
+  def ensure_csv_dir
+    unless Dir.exist?('csv')
+      puts "ERROR: csv directory not found!"
+      puts ""
+      puts "You need to add your data as a git submodule:"
+      puts "  # Option 1: Local repository"
+      puts "  git submodule add ../your-private-metrics-data csv"
+      puts ""
+      puts "  # Option 2: Remote repository" 
+      puts "  git submodule add https://github.com/yourusername/your-private-metrics-data.git csv"
+      puts ""
+      puts "Then run: git submodule update --init --recursive"
+      exit 1
+    end
+  end
 
   def ensure_output_dir
     Dir.mkdir(@output_dir) unless Dir.exist?(@output_dir)
