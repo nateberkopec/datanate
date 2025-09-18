@@ -2,3 +2,13 @@ dist/
 .bundle/
 vendor/bundle/
 csv
+
+# Environment variables
+.env
+
+# Terraform
+terraform/terraform.tfvars
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/.terraform.lock.hcl

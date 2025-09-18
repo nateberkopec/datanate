@@ -1,0 +1,40 @@
+name: Deploy Dashboard
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Run hourly at minute 0
+    - cron: '0 * * * *'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+          token: ${{ secrets.SUBMODULE_TOKEN }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Setup mise
+        uses: jdx/mise-action@v2
+
+      - name: Build dashboard
+        run: mise build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: datanate-dashboard
+          directory: dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

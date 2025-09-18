@@ -1,4 +1,3 @@
-Move generate.rb to lib
 Add tests
 Yaml validation re: graph
 Reminders about missing data, data expectations

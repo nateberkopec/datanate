@@ -1,3 +1,7 @@
+[env]
+# Load environment variables from .env file
+_.file = ".env"
+
 [tasks.setup]
 description = "Install dependencies"
 run = "bundle install"
@@ -11,3 +15,15 @@ run = "bundle exec rake generate"
 description = "Serve the dashboard locally on port 8080"
 depends = ["setup"]
 run = "cd dist && ruby -run -e httpd . -p 8080"
+
+[tasks.tf-plan]
+description = "Plan Terraform infrastructure changes"
+run = "cd terraform && terraform plan"
+
+[tasks.tf-apply]
+description = "Apply Terraform infrastructure changes"
+run = "cd terraform && terraform apply"
+
+[tasks.tf-init]
+description = "Initialize Terraform"
+run = "cd terraform && terraform init"
