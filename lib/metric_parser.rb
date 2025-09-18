@@ -28,21 +28,9 @@ class MetricParser
   def parse_csv_file(file_path, metric_config)
     content = File.read(file_path)
     
-    # Parse front matter if present
-    front_matter = {}
-    csv_content = content
-    
-    if content.start_with?('---')
-      parts = content.split(/^---\s*$/, 3)
-      if parts.length >= 3
-        front_matter = YAML.load(parts[1]) || {}
-        csv_content = parts[2].strip
-      end
-    end
-    
-    # Parse CSV data
+    # Parse CSV data directly (no front matter)
     data_points = []
-    CSV.parse(csv_content, headers: true) do |row|
+    CSV.parse(content, headers: true) do |row|
       data_points << {
         timestamp: Date.parse(row['timestamp']),
         value: row['value'].to_f
@@ -50,7 +38,7 @@ class MetricParser
     end
     
     {
-      config: metric_config.merge(front_matter),
+      config: metric_config,
       data: data_points.sort_by { |point| point[:timestamp] }
     }
   end
