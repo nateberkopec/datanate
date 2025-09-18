@@ -12,25 +12,15 @@ variable "cloudflare_account_id" {
 }
 
 variable "cloudflare_zone_id" {
-  description = "Cloudflare Zone ID (for custom domain)"
+  description = "Cloudflare Zone ID for your custom domain"
   type        = string
   default     = env("TF_VAR_cloudflare_zone_id")
 }
 
-variable "github_username" {
-  description = "GitHub username or organization"
-  type        = string
-  default     = env("TF_VAR_github_username")
-}
-
-variable "github_repo_name" {
-  description = "GitHub repository name"
-  type        = string
-  default     = env("TF_VAR_github_repo_name")
-}
+# GitHub variables removed - no longer needed for direct upload
 
 variable "custom_domain" {
-  description = "Custom domain for the dashboard (optional)"
+  description = "Custom domain for the dashboard (required)"
   type        = string
   default     = env("TF_VAR_custom_domain")
 }

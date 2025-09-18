@@ -11,33 +11,17 @@ provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# Cloudflare Pages project
+# Cloudflare Pages project (direct upload, no git integration)
 resource "cloudflare_pages_project" "datanate_dashboard" {
   account_id        = var.cloudflare_account_id
   name             = "datanate-dashboard"
   production_branch = "main"
 
-  build_config {
-    build_command   = "mise build"
-    destination_dir = "dist"
-  }
-
-  source {
-    type = "github"
-    config {
-      owner                         = var.github_username
-      repo_name                    = var.github_repo_name
-      production_branch            = "main"
-      pr_comments_enabled          = false
-      deployments_enabled          = true
-      production_deployment_enabled = true
-    }
-  }
+  # No build config or source - using direct upload via wrangler
 }
 
-# Custom domain (optional)
+# Custom domain
 resource "cloudflare_pages_domain" "datanate_dashboard" {
-  count      = var.custom_domain != "" ? 1 : 0
   account_id = var.cloudflare_account_id
   project_name = cloudflare_pages_project.datanate_dashboard.name
   domain     = var.custom_domain
@@ -60,22 +44,15 @@ resource "cloudflare_worker_script" "auth_worker" {
   }
 }
 
-# Worker route to apply auth to the pages site
+# Worker route to apply auth to the custom domain
 resource "cloudflare_worker_route" "auth_route" {
   zone_id     = var.cloudflare_zone_id
-  pattern     = var.custom_domain != "" ? "${var.custom_domain}/*" : "${cloudflare_pages_project.datanate_dashboard.subdomain}/*"
+  pattern     = "${var.custom_domain}/*"
   script_name = cloudflare_worker_script.auth_worker.name
 }
 
-# Zone settings for the custom domain (if used)
-resource "cloudflare_zone" "main" {
-  count = var.custom_domain != "" ? 1 : 0
-  zone  = var.custom_domain
-}
-
-# DNS record for custom domain (if used)
+# DNS record for custom domain
 resource "cloudflare_record" "pages_cname" {
-  count   = var.custom_domain != "" ? 1 : 0
   zone_id = var.cloudflare_zone_id
   name    = var.custom_domain
   value   = cloudflare_pages_project.datanate_dashboard.subdomain

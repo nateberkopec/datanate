@@ -1,11 +1,11 @@
-output "pages_url" {
-  description = "URL of the Cloudflare Pages deployment"
-  value       = "https://${cloudflare_pages_project.datanate_dashboard.subdomain}"
+output "dashboard_url" {
+  description = "URL of the dashboard on your custom domain"
+  value       = "https://${var.custom_domain}"
 }
 
-output "custom_domain_url" {
-  description = "URL of the custom domain (if configured)"
-  value       = var.custom_domain != "" ? "https://${var.custom_domain}" : null
+output "pages_subdomain" {
+  description = "Cloudflare Pages subdomain (for reference)"
+  value       = cloudflare_pages_project.datanate_dashboard.subdomain
 }
 
 output "worker_script_name" {

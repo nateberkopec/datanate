@@ -11,8 +11,9 @@ This Terraform configuration sets up the complete infrastructure for automatical
 ## Prerequisites
 
 1. **Cloudflare Account** with Pages and Workers enabled
-2. **GitHub Repository** for your datanate project
+2. **Custom domain** added to your Cloudflare account
 3. **Terraform** installed locally
+4. **Node.js** installed (for wrangler CLI)
 
 ## Setup
 
@@ -25,6 +26,7 @@ This Terraform configuration sets up the complete infrastructure for automatical
    - Get Cloudflare API token from: Dashboard > My Profile > API Tokens
    - Get Account ID from: Dashboard > Right sidebar
    - Get Zone ID from: Dashboard > Your Domain > Right sidebar
+   - Set your custom domain (must be added to Cloudflare first)
 
 3. **Initialize and apply using mise:**
    ```bash
@@ -38,10 +40,20 @@ This Terraform configuration sets up the complete infrastructure for automatical
    - `CLOUDFLARE_ACCOUNT_ID`: Same account ID from .env  
    - `SUBMODULE_TOKEN`: GitHub token with repo access (if using private submodules)
 
+## Local Deployment
+
+You can also deploy locally using mise:
+
+```bash
+mise deploy
+```
+
+This will build and deploy your dashboard directly from your machine.
+
 ## Configuration
 
-### Custom Domain (Optional)
-To use a custom domain, set `TF_VAR_custom_domain` in .env and ensure the domain is added to your Cloudflare account.
+### Custom Domain (Required)
+Set `TF_VAR_custom_domain` in .env to your desired subdomain. The domain must be added to your Cloudflare account first.
 
 ### Authentication
 The worker enforces HTTP Basic Auth using the username/password from .env.

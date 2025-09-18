@@ -27,3 +27,8 @@ run = "cd terraform && terraform apply"
 [tasks.tf-init]
 description = "Initialize Terraform"
 run = "cd terraform && terraform init"
+
+[tasks.deploy]
+description = "Deploy dashboard to Cloudflare Pages"
+depends = ["build"]
+run = "npx wrangler pages deploy dist --project-name=datanate-dashboard"
