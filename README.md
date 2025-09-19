@@ -1,7 +1,5 @@
 # Datanate
 
-<img width="1141" height="1174" alt="Screenshot 2025-09-19 at 10 22 44" src="https://github.com/user-attachments/assets/4e7a8f36-9926-4ddc-920d-d1f780fad776" />
-
 Personal metrics dashboard that models life activities as interconnected metrics chains. Features automatic deployment to Cloudflare Pages with authentication and CI/CD.
 
 ## Quick Start
