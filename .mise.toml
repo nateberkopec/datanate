@@ -15,9 +15,9 @@ depends = ["setup"]
 run = "bundle exec rake generate"
 
 [tasks.serve]
-description = "Serve the dashboard locally on port 8080"
+description = "Serve the dashboard locally with HTTP/2 and HTTPS"
 depends = ["setup"]
-run = "cd dist && ruby -run -e httpd . -p 8080"
+run = "cd dist && caddy file-server --browse --listen :8080"
 
 [tasks.tf-plan]
 description = "Plan Terraform infrastructure changes"
