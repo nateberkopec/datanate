@@ -9,11 +9,11 @@ output "pages_subdomain" {
 }
 
 output "access_custom_domain" {
-  description = "Cloudflare Access application for custom domain"
-  value       = cloudflare_access_application.datanate_dashboard_custom.domain
+  description = "Cloudflare Zero Trust Access application for custom domain"
+  value       = cloudflare_zero_trust_access_application.datanate_dashboard_custom.domain
 }
 
-output "access_pages_domain" {
-  description = "Cloudflare Access application for pages.dev domain"
-  value       = cloudflare_access_application.datanate_dashboard_pages.domain
+output "access_deployments_domain" {
+  description = "Cloudflare Zero Trust Access application for all deployment URLs"
+  value       = cloudflare_zero_trust_access_application.datanate_dashboard_deployments.domain
 }
