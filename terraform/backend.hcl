@@ -1,10 +1,10 @@
-bucket = "datanate-terraform-state"
+bucket = "my-project-terraform-state"
 key    = "terraform.tfstate"
-region = "APAC"
+region = "auto"
 
 # Replace YOUR_ACCOUNT_ID with your actual Cloudflare account ID
 endpoints = {
-  s3 = "https://483577a265562462b960f85c7f210379.r2.cloudflarestorage.com"
+  s3 = "https://YOUR_ACCOUNT_ID.r2.cloudflarestorage.com"
 }
 
 skip_credentials_validation = true

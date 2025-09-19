@@ -19,7 +19,7 @@ jobs:
       - name: Checkout private data
         uses: actions/checkout@v5
         with:
-          repository: nateberkopec/datanate-data
+          repository: ${{ secrets.PRIVATE_DATA_REPO }}
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
           path: csv
 
@@ -40,4 +40,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=datanate-dashboard
+          command: pages deploy dist --project-name=${{ secrets.PROJECT_NAME }}

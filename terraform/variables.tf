@@ -39,3 +39,15 @@ variable "r2_location" {
   type        = string
   default     = "WNAM"
 }
+
+variable "project_name" {
+  description = "Name of the project (used for Pages project and application names)"
+  type        = string
+  default     = "datanate-dashboard"
+}
+
+variable "access_email" {
+  description = "Email address allowed to access the dashboard"
+  type        = string
+}
+
