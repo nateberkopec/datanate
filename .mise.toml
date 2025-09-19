@@ -28,6 +28,10 @@ run = "cd terraform && terraform apply"
 description = "Initialize Terraform"
 run = "cd terraform && terraform init"
 
+[tasks.tf-show]
+description = "Show Terraform state"
+run = "cd terraform && terraform show"
+
 [tasks.deploy]
 description = "Deploy dashboard to Cloudflare Pages"
 depends = ["build"]

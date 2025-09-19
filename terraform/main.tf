@@ -6,20 +6,13 @@ terraform {
     }
   }
 
-  # Backend configuration will be added after initial setup
-  # Use: terraform init -backend-config=backend.hcl
+  backend "s3" {}
 }
 
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }
 
-# R2 bucket for Terraform state
-resource "cloudflare_r2_bucket" "terraform_state" {
-  account_id = var.cloudflare_account_id
-  name       = "datanate-terraform-state"
-  location   = var.r2_location
-}
 
 # Cloudflare Pages project (direct upload, no git integration)
 resource "cloudflare_pages_project" "datanate_dashboard" {
@@ -37,35 +30,55 @@ resource "cloudflare_pages_domain" "datanate_dashboard" {
   domain     = var.custom_domain
 }
 
-# Cloudflare Worker for HTTP Basic Auth
-resource "cloudflare_worker_script" "auth_worker" {
-  account_id = var.cloudflare_account_id
-  name       = "datanate-auth"
-  content    = file("${path.module}/auth-worker.js")
+# Cloudflare Access application for custom domain
+resource "cloudflare_access_application" "datanate_dashboard_custom" {
+  zone_id          = var.cloudflare_zone_id
+  name             = "Datanate Dashboard (Custom Domain)"
+  domain           = var.custom_domain
+  type             = "self_hosted"
+  session_duration = "720h"
+}
 
-  secret_text_binding {
-    name = "AUTH_USERNAME"
-    text = var.auth_username
-  }
+# Cloudflare Access application for pages.dev domain
+resource "cloudflare_access_application" "datanate_dashboard_pages" {
+  account_id       = var.cloudflare_account_id
+  name             = "Datanate Dashboard (Pages.dev)"
+  domain           = "${cloudflare_pages_project.datanate_dashboard.subdomain}"
+  type             = "self_hosted"
+  session_duration = "720h"
+}
 
-  secret_text_binding {
-    name = "AUTH_PASSWORD"
-    text = var.auth_password
+# Access policy for custom domain
+resource "cloudflare_access_policy" "datanate_dashboard_custom_policy" {
+  application_id = cloudflare_access_application.datanate_dashboard_custom.id
+  zone_id        = var.cloudflare_zone_id
+  name           = "Allow Nate"
+  precedence     = 1
+  decision       = "allow"
+
+  include {
+    email = ["me@nateberkopec.com"]
   }
 }
 
-# Worker route to apply auth to the custom domain
-resource "cloudflare_worker_route" "auth_route" {
-  zone_id     = var.cloudflare_zone_id
-  pattern     = "${var.custom_domain}/*"
-  script_name = cloudflare_worker_script.auth_worker.name
+# Access policy for pages.dev domain
+resource "cloudflare_access_policy" "datanate_dashboard_pages_policy" {
+  application_id = cloudflare_access_application.datanate_dashboard_pages.id
+  account_id     = var.cloudflare_account_id
+  name           = "Allow Nate"
+  precedence     = 1
+  decision       = "allow"
+
+  include {
+    email = ["me@nateberkopec.com"]
+  }
 }
 
 # DNS record for custom domain
 resource "cloudflare_record" "pages_cname" {
   zone_id = var.cloudflare_zone_id
   name    = var.custom_domain
-  value   = cloudflare_pages_project.datanate_dashboard.subdomain
+  content = cloudflare_pages_project.datanate_dashboard.subdomain
   type    = "CNAME"
   proxied = true
 }

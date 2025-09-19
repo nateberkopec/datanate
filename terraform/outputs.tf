@@ -8,7 +8,12 @@ output "pages_subdomain" {
   value       = cloudflare_pages_project.datanate_dashboard.subdomain
 }
 
-output "worker_script_name" {
-  description = "Name of the auth worker script"
-  value       = cloudflare_worker_script.auth_worker.name
+output "access_custom_domain" {
+  description = "Cloudflare Access application for custom domain"
+  value       = cloudflare_access_application.datanate_dashboard_custom.domain
+}
+
+output "access_pages_domain" {
+  description = "Cloudflare Access application for pages.dev domain"
+  value       = cloudflare_access_application.datanate_dashboard_pages.domain
 }

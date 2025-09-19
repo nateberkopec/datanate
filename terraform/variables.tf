@@ -21,16 +21,6 @@ variable "custom_domain" {
   type        = string
 }
 
-variable "auth_username" {
-  description = "HTTP Basic Auth username"
-  type        = string
-}
-
-variable "auth_password" {
-  description = "HTTP Basic Auth password"
-  type        = string
-  sensitive   = true
-}
 
 variable "r2_access_key_id" {
   description = "Cloudflare R2 Access Key ID"
