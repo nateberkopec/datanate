@@ -7,10 +7,22 @@ function numberWithDelimiter(num) {
 
 Object.keys(metricsData).forEach(metricId => {
     const metric = metricsData[metricId];
+    createChart(metricId, metric);
+});
+
+function createChart(metricId, metric) {
+    const metricCard = d3.select(`#chart-${metricId}`);
+    if (!metricCard.node()) return;
+
+    if (metric.config.chart_type === 'bar') {
+        createBarChart(metricId, metric);
+    } else {
+        createLineChart(metricId, metric);
+    }
+}
+
+function createLineChart(metricId, metric) {
     const container = d3.select(`#chart-${metricId}`);
-
-    if (!container.node()) return;
-
     const margin = {top: 10, right: 30, bottom: 30, left: 40};
     const width = container.node().offsetWidth - margin.left - margin.right;
     const height = 200 - margin.top - margin.bottom;
@@ -31,19 +43,28 @@ Object.keys(metricsData).forEach(metricId => {
         .domain(d3.extent(data, d => d.date))
         .range([0, width]);
 
+    // Calculate y-axis domain including target if it exists
+    const dataExtent = d3.extent(data, d => d.value);
+    const maxValue = metric.config.target ?
+        Math.max(dataExtent[1], metric.config.target) :
+        dataExtent[1];
+    const minValue = metric.config.target ?
+        Math.min(dataExtent[0], metric.config.target) :
+        dataExtent[0];
+
+    // Add 10% padding to the top
+    const yDomain = [minValue, maxValue * 1.1];
+
     const yScale = d3.scaleLinear()
-        .domain(d3.extent(data, d => d.value))
+        .domain(yDomain)
         .nice()
         .range([height, 0]);
 
-    const line = d3.line()
-        .x(d => xScale(d.date))
-        .y(d => yScale(d.value))
-        .curve(d3.curveMonotoneX);
-
+    // Add axes with time-dimension-appropriate formatting
+    const timeFormat = getTimeFormat(metric.config.time_dimension);
     g.append('g')
         .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%b')))
+        .call(d3.axisBottom(xScale).tickFormat(timeFormat))
         .selectAll('text')
         .style('fill', '#888');
 
@@ -52,6 +73,7 @@ Object.keys(metricsData).forEach(metricId => {
         .selectAll('text')
         .style('fill', '#888');
 
+    // Add grid lines
     g.append('g')
         .attr('class', 'grid')
         .attr('transform', `translate(0,${height})`)
@@ -62,6 +84,12 @@ Object.keys(metricsData).forEach(metricId => {
         .style('stroke-dasharray', '3,3')
         .style('opacity', 0.1);
 
+    // Add line
+    const line = d3.line()
+        .x(d => xScale(d.date))
+        .y(d => yScale(d.value))
+        .curve(d3.curveMonotoneX);
+
     g.append('path')
         .datum(data)
         .attr('fill', 'none')
@@ -69,6 +97,7 @@ Object.keys(metricsData).forEach(metricId => {
         .attr('stroke-width', 2)
         .attr('d', line);
 
+    // Add dots
     g.selectAll('.dot')
         .data(data)
         .enter().append('circle')
@@ -78,16 +107,157 @@ Object.keys(metricsData).forEach(metricId => {
         .attr('r', 3)
         .attr('fill', '#4ECDC4')
         .on('mouseover', function(event, d) {
-            const tooltip = d3.select('#tooltip');
-            tooltip.style('opacity', 1)
-                .html(`${d.date.toLocaleDateString()}<br/>${numberWithDelimiter(d.value)} ${metric.config.unit}`)
-                .style('left', (event.pageX + 10) + 'px')
-                .style('top', (event.pageY - 10) + 'px');
+            showTooltip(event, d, metric);
         })
         .on('mouseout', function() {
             d3.select('#tooltip').style('opacity', 0);
         });
-});
+
+    // Add target line if target exists
+    if (metric.config.target) {
+        const targetY = yScale(metric.config.target);
+
+        g.append('line')
+            .attr('class', 'target-line')
+            .attr('x1', 0)
+            .attr('x2', width)
+            .attr('y1', targetY)
+            .attr('y2', targetY)
+            .attr('stroke', '#FFD93D')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '5,5');
+
+        g.append('text')
+            .attr('class', 'target-label')
+            .attr('x', width - 5)
+            .attr('y', targetY - 5)
+            .attr('text-anchor', 'end')
+            .style('fill', '#FFD93D')
+            .style('font-size', '11px')
+            .style('font-weight', '500')
+            .text(`Target: ${numberWithDelimiter(metric.config.target)}`);
+    }
+}
+
+function createBarChart(metricId, metric) {
+    const container = d3.select(`#chart-${metricId}`);
+    const margin = {top: 10, right: 30, bottom: 30, left: 40};
+    const width = container.node().offsetWidth - margin.left - margin.right;
+    const height = 200 - margin.top - margin.bottom;
+
+    const svg = container.append('svg')
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+
+    const data = metric.data.map(d => ({
+        date: new Date(d.date),
+        value: +d.value
+    }));
+
+    const xScale = d3.scaleBand()
+        .domain(data.map(d => d.date))
+        .range([0, width])
+        .padding(0.1);
+
+    // Calculate y-axis domain including target if it exists
+    const yMax = d3.max(data, d => d.value);
+    const targetAdjustedMax = metric.config.target ? Math.max(yMax, metric.config.target) : yMax;
+
+    const yScale = d3.scaleLinear()
+        .domain([0, targetAdjustedMax * 1.1])
+        .nice()
+        .range([height, 0]);
+
+    // Add axes
+    const timeFormat = getTimeFormat(metric.config.time_dimension);
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale).tickFormat(timeFormat))
+        .selectAll('text')
+        .style('fill', '#888');
+
+    g.append('g')
+        .call(d3.axisLeft(yScale).ticks(5))
+        .selectAll('text')
+        .style('fill', '#888');
+
+    // Add grid lines
+    g.append('g')
+        .attr('class', 'grid')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisLeft(yScale)
+            .tickSize(-width)
+            .tickFormat('')
+        )
+        .style('stroke-dasharray', '3,3')
+        .style('opacity', 0.1);
+
+    // Add bars
+    g.selectAll('.bar')
+        .data(data)
+        .enter().append('rect')
+        .attr('class', 'bar')
+        .attr('x', d => xScale(d.date))
+        .attr('width', xScale.bandwidth())
+        .attr('y', d => yScale(d.value))
+        .attr('height', d => height - yScale(d.value))
+        .attr('fill', '#4ECDC4')
+        .on('mouseover', function(event, d) {
+            showTooltip(event, d, metric);
+        })
+        .on('mouseout', function() {
+            d3.select('#tooltip').style('opacity', 0);
+        });
+
+    // Add target line if target exists
+    if (metric.config.target) {
+        const targetY = yScale(metric.config.target);
+
+        g.append('line')
+            .attr('class', 'target-line')
+            .attr('x1', 0)
+            .attr('x2', width)
+            .attr('y1', targetY)
+            .attr('y2', targetY)
+            .attr('stroke', '#FFD93D')
+            .attr('stroke-width', 2)
+            .attr('stroke-dasharray', '5,5');
+
+        g.append('text')
+            .attr('class', 'target-label')
+            .attr('x', width - 5)
+            .attr('y', targetY - 5)
+            .attr('text-anchor', 'end')
+            .style('fill', '#FFD93D')
+            .style('font-size', '11px')
+            .style('font-weight', '500')
+            .text(`Target: ${numberWithDelimiter(metric.config.target)}`);
+    }
+}
+
+function getTimeFormat(timeDimension) {
+    switch(timeDimension) {
+        case 'weekly':
+            return d3.timeFormat('%m/%d');
+        case 'monthly':
+            return d3.timeFormat('%b');
+        case 'daily':
+            return d3.timeFormat('%m/%d');
+        default:
+            return d3.timeFormat('%b');
+    }
+}
+
+function showTooltip(event, d, metric) {
+    const tooltip = d3.select('#tooltip');
+    tooltip.style('opacity', 1)
+        .html(`${d.date.toLocaleDateString()}<br/>${numberWithDelimiter(d.value)} ${metric.config.unit}`)
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 10) + 'px');
+}
 
 function createRelationshipDiagram() {
     // Get all unique categories

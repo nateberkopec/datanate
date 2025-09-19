@@ -90,7 +90,7 @@ body {
 .metric-card {
     background: #2d2d2d;
     border-radius: 8px;
-    padding: 1.5rem;
+    padding: 1rem;
     border: 1px solid #444;
     transition: transform 0.2s ease;
 }
@@ -102,9 +102,17 @@ body {
 
 .metric-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 1rem;
     margin-bottom: 1rem;
+}
+
+.metric-info {
+    flex: 0 1 75%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+    min-width: 0;
 }
 
 .metric-title {
@@ -113,9 +121,11 @@ body {
 }
 
 .metric-value {
+    flex: 0 0 25%;
     font-size: 2rem;
     font-weight: 300;
     color: #4ECDC4;
+    text-align: right;
 }
 
 .metric-unit {
@@ -133,6 +143,49 @@ body {
 .chart-container {
     height: 200px;
     margin-top: 1rem;
+}
+
+.metric-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+}
+
+.metric-relationships {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+}
+
+.relationship-group {
+    white-space: nowrap;
+}
+
+.relationship-label {
+    color: #888;
+    font-weight: 500;
+}
+
+.relationship-links {
+    color: #aaa;
+}
+
+.relationship-link {
+    color: #4ECDC4 !important;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.relationship-link:hover {
+    color: #6BCF7F !important;
+    text-decoration: underline;
+}
+
+.relationship-link:visited {
+    color: #4ECDC4 !important;
 }
 
 .tier-indicator {

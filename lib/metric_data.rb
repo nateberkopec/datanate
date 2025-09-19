@@ -49,14 +49,26 @@ class MetricData
 
   def relationships
     relationships = {}
-    
+
     @config['metrics'].each do |metric_id, metric_config|
       if metric_config['relationships']
         relationships[metric_id] = metric_config['relationships']
       end
     end
-    
+
     relationships
+  end
+
+  def find_by_id(metric_id)
+    return nil unless @metrics_data[metric_id]
+
+    {
+      id: metric_id,
+      config: @metrics_data[metric_id][:config],
+      latest_value: @metrics_data[metric_id][:data].last&.dig(:value),
+      data_points: @metrics_data[metric_id][:data].length,
+      tier: @tiers[metric_id] || 0
+    }
   end
 
   def self.number_with_delimiter(number)
