@@ -1,5 +1,4 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve';
-import terser from '@rollup/plugin-terser';
 
 export default {
   input: 'assets/app.js',
@@ -9,7 +8,6 @@ export default {
     name: 'DatanateApp'
   },
   plugins: [
-    nodeResolve(),
-    terser()
+    nodeResolve()
   ]
 };
