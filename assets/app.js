@@ -90,127 +90,181 @@ Object.keys(metricsData).forEach(metricId => {
 });
 
 function createRelationshipDiagram() {
-    const container = d3.select('#relationships-chart');
+    // Get all unique categories
+    const categories = new Set();
+    Object.values(metricsData).forEach(metric => {
+        categories.add(metric.config.category);
+    });
+
+    categories.forEach(category => {
+        createCategoryDAG(category);
+    });
+}
+
+function createCategoryDAG(category) {
+    const container = d3.select(`#relationships-chart-${category}`);
+
+    if (!container.node()) return;
+
     const width = container.node().offsetWidth;
-    const height = 400;
-    const margin = {top: 20, right: 90, bottom: 30, left: 90};
+    const height = 300;
+    const margin = {top: 20, right: 20, bottom: 20, left: 20};
 
     const svg = container.append('svg')
         .attr('width', width)
         .attr('height', height);
 
-    const g = svg.append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
+    // Build nodes and links for this category
+    const { nodes, links } = buildCategoryNetwork(category);
 
-    function buildHierarchy() {
-        const metricNodes = {};
-        const rootNodes = [];
+    if (nodes.length === 0) return;
 
-        Object.keys(metricsData).forEach(metricId => {
-            const metric = metricsData[metricId];
-            metricNodes[metricId] = {
-                id: metricId,
-                name: metric.config.display_name,
-                category: metric.config.category,
-                tier: metric.config.tier || 0,
-                children: []
-            };
-        });
+    // Create force simulation
+    const simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(100))
+        .force('charge', d3.forceManyBody().strength(-300))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(25));
 
-        Object.keys(relationships).forEach(metricId => {
-            const rel = relationships[metricId];
-            if (rel.influences) {
-                rel.influences.forEach(childId => {
-                    if (metricNodes[childId]) {
-                        metricNodes[metricId].children.push(metricNodes[childId]);
-                    }
-                });
-            }
-        });
+    // Create links
+    const link = svg.append('g')
+        .attr('class', 'links')
+        .selectAll('line')
+        .data(links)
+        .enter().append('line')
+        .attr('stroke', '#666')
+        .attr('stroke-width', 2)
+        .attr('marker-end', 'url(#arrowhead)');
 
-        const childIds = new Set();
-        Object.values(metricNodes).forEach(node => {
-            node.children.forEach(child => childIds.add(child.id));
-        });
+    // Create arrowhead marker
+    svg.append('defs').append('marker')
+        .attr('id', 'arrowhead')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 20)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('fill', '#666');
 
-        Object.values(metricNodes).forEach(node => {
-            if (!childIds.has(node.id)) {
-                rootNodes.push(node);
-            }
-        });
+    // Create nodes
+    const node = svg.append('g')
+        .attr('class', 'nodes')
+        .selectAll('g')
+        .data(nodes)
+        .enter().append('g')
+        .attr('class', 'node')
+        .call(d3.drag()
+            .on('start', dragstarted)
+            .on('drag', dragged)
+            .on('end', dragended));
 
-        const categoryTrees = {};
-        rootNodes.forEach(root => {
-            if (!categoryTrees[root.category]) {
-                categoryTrees[root.category] = {
-                    name: root.category,
-                    children: []
-                };
-            }
-            categoryTrees[root.category].children.push(root);
-        });
+    node.append('circle')
+        .attr('r', 15)
+        .attr('fill', d => getTierColor(d.tier))
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 2);
 
-        return Object.values(categoryTrees);
+    node.append('text')
+        .attr('dy', '.35em')
+        .attr('text-anchor', 'middle')
+        .style('fill', '#fff')
+        .style('font-size', '10px')
+        .style('font-weight', 'bold')
+        .style('pointer-events', 'none')
+        .text(d => d.name.split(' ').map(word => word.charAt(0)).join(''));
+
+    // Add tooltips
+    node.on('mouseover', function(event, d) {
+        const tooltip = d3.select('#tooltip');
+        tooltip.style('opacity', 1)
+            .html(`${d.name}<br/>Tier ${d.tier}`)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 10) + 'px');
+    })
+    .on('mouseout', function() {
+        d3.select('#tooltip').style('opacity', 0);
+    });
+
+    // Update positions on simulation tick
+    simulation.on('tick', () => {
+        link
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+
+        node
+            .attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+    function dragstarted(event, d) {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
     }
 
-    const categoryTrees = buildHierarchy();
+    function dragged(event, d) {
+        d.fx = event.x;
+        d.fy = event.y;
+    }
 
-    const treeLayout = d3.tree()
-        .size([height - margin.top - margin.bottom, width - margin.left - margin.right]);
+    function dragended(event, d) {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
+}
 
-    const treeHeight = (height - margin.top - margin.bottom) / categoryTrees.length;
+function buildCategoryNetwork(category) {
+    const nodes = [];
+    const links = [];
+    const nodeMap = {};
 
-    categoryTrees.forEach((categoryData, index) => {
-        const root = d3.hierarchy(categoryData);
-        const adjustedTreeLayout = d3.tree()
-            .size([treeHeight - 20, width - margin.left - margin.right]);
-        adjustedTreeLayout(root);
-
-        const yOffset = index * treeHeight + treeHeight / 2;
-        root.descendants().forEach(d => d.x += yOffset);
-
-        g.selectAll(`.link-${index}`)
-            .data(root.links())
-            .enter().append('path')
-            .attr('class', `link link-${index}`)
-            .attr('d', d3.linkHorizontal()
-                .x(d => d.y)
-                .y(d => d.x))
-            .style('fill', 'none')
-            .style('stroke', '#666')
-            .style('stroke-width', 2);
-
-        const node = g.selectAll(`.node-${index}`)
-            .data(root.descendants())
-            .enter().append('g')
-            .attr('class', `node node-${index}`)
-            .attr('transform', d => `translate(${d.y},${d.x})`);
-
-        node.append('circle')
-            .attr('r', d => d.data.tier !== undefined ? 8 : 6)
-            .style('fill', d => {
-                if (d.data.tier === undefined) return '#444';
-                switch(d.data.tier) {
-                    case 0: return '#FF6B6B';
-                    case 1: return '#FFD93D';
-                    case 2: return '#6BCF7F';
-                    case 3: return '#9B59B6';
-                    case 4: return '#E67E22';
-                    default: return '#888';
-                }
-            })
-            .style('stroke', '#fff')
-            .style('stroke-width', 2);
-
-        node.append('text')
-            .attr('dy', '.35em')
-            .attr('x', d => d.children ? -13 : 13)
-            .style('text-anchor', d => d.children ? 'end' : 'start')
-            .style('fill', '#fff')
-            .style('font-size', d => d.data.tier !== undefined ? '12px' : '14px')
-            .style('font-weight', d => d.data.tier !== undefined ? 'normal' : 'bold')
-            .text(d => d.data.name);
+    // Create nodes for this category
+    Object.keys(metricsData).forEach(metricId => {
+        const metric = metricsData[metricId];
+        if (metric.config.category === category) {
+            const node = {
+                id: metricId,
+                name: metric.config.display_name,
+                tier: metric.config.tier || 0,
+                category: category
+            };
+            nodes.push(node);
+            nodeMap[metricId] = node;
+        }
     });
+
+    // Create links based on relationships within this category
+    Object.keys(relationships).forEach(metricId => {
+        const rel = relationships[metricId];
+        if (rel.influences && nodeMap[metricId]) {
+            rel.influences.forEach(targetId => {
+                if (nodeMap[targetId]) {
+                    links.push({
+                        source: targetId,
+                        target: metricId
+                    });
+                }
+            });
+        }
+    });
+
+    return { nodes, links };
+}
+
+function getTierColor(tier) {
+    switch(tier) {
+        case 0: return '#FF6B6B';
+        case 1: return '#FFD93D';
+        case 2: return '#6BCF7F';
+        case 3: return '#9B59B6';
+        case 4: return '#E67E22';
+        default: return '#888';
+    }
 }
 
 createRelationshipDiagram();

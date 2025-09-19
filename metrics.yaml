@@ -7,16 +7,11 @@ categories:
     name: "Cycling Performance"
     color: "#FF6B6B"
     description: "Training and racing metrics"
-  
+
   work:
     name: "Work & Business"
     color: "#4ECDC4"
     description: "Revenue and productivity metrics"
-  
-  family:
-    name: "Family & Personal"
-    color: "#45B7D1"
-    description: "Family and personal life metrics"
 
 metrics:
   cycling_training_hours:
@@ -28,17 +23,17 @@ metrics:
     target: 15
     relationships:
       influenced_by: ["cycling_ftp", "cycling_race_points"]
-  
+
   cycling_ftp:
     file: "csv/cycling_ftp.csv"
     category: "cycling"
     type: "intermediate"
-    display_name: "FTP (Functional Threshold Power)"
+    display_name: "FTP"
     unit: "watts"
     target: 350
     relationships:
       influences: ["cycling_training_hours"]
-  
+
   cycling_race_points:
     file: "csv/cycling_race_points.csv"
     category: "cycling"
@@ -48,17 +43,17 @@ metrics:
     target: 250
     relationships:
       influences: ["cycling_training_hours"]
-  
+
   work_value_events:
     file: "csv/work_features_shipped.csv"
     category: "work"
     type: "input"
-    display_name: "Value Events (Weekly)"
+    display_name: "Value Events"
     unit: "count"
     target: 5
     relationships:
       influenced_by: ["work_customers"]
-  
+
   work_customers:
     file: "csv/work_customers.csv"
     category: "work"
@@ -69,7 +64,7 @@ metrics:
     relationships:
       influenced_by: ["work_revenue"]
       influences: ["work_value_events"]
-  
+
   work_revenue:
     file: "csv/work_revenue.csv"
     category: "work"
@@ -85,11 +80,11 @@ layout:
     - title: "Output Metrics"
       description: "Ultimate goals and outcomes"
       metrics: ["cycling_race_points", "work_revenue"]
-      
+
     - title: "Intermediate Metrics"
       description: "Progress indicators"
       metrics: ["cycling_ftp", "work_customers"]
-      
+
     - title: "Input Metrics"
       description: "Direct activities and efforts"
       metrics: ["cycling_training_hours", "work_features_shipped"]

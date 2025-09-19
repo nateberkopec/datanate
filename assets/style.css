@@ -182,6 +182,22 @@ body {
     color: #ffffff;
 }
 
+.category-relationships {
+    margin-bottom: 2rem;
+}
+
+.category-relationships h3 {
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    font-weight: 500;
+}
+
+.relationships-chart {
+    background: #1a1a1a;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
 .tooltip {
     position: absolute;
     padding: 8px 12px;

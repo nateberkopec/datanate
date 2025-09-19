@@ -69,7 +69,12 @@
 
         <div class="relationships">
             <h2>Metric Relationships</h2>
-            <div id="relationships-chart" style="height: 400px;"></div>
+            <% categories.each do |category_key, category_data| %>
+            <div class="category-relationships">
+                <h3 style="color: <%= category_data['color'] %>"><%= category_data['name'] %> Dependencies</h3>
+                <div id="relationships-chart-<%= category_key %>" class="relationships-chart" style="height: 300px;"></div>
+            </div>
+            <% end %>
         </div>
     </div>
 
