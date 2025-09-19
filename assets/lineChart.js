@@ -42,16 +42,6 @@ export function renderLineChart(layer, data, metric, width, height) {
         .selectAll('text')
         .style('fill', '#888');
 
-    // Add grid lines
-    layer.append('g')
-        .attr('class', 'grid')
-        .attr('transform', `translate(0,${height})`)
-        .call(axisBottom(xScale)
-            .tickSize(-height)
-            .tickFormat('')
-        )
-        .style('stroke-dasharray', '3,3')
-        .style('opacity', 0.1);
 
     // Add line
     const lineGenerator = line()

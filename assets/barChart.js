@@ -26,16 +26,6 @@ export function renderBarChart(layer, data, metric, width, height) {
         data.filter((d, i) => i % Math.ceil(data.length / maxTicks) === 0).map(d => d.date) :
         data.map(d => d.date);
 
-    // Add grid lines first (so they appear behind bars)
-    layer.append('g')
-        .attr('class', 'grid')
-        .call(axisLeft(yScale)
-            .ticks(5)
-            .tickSize(-width)
-            .tickFormat('')
-        )
-        .style('stroke-dasharray', '3,3')
-        .style('opacity', 0.1);
 
     layer.append('g')
         .attr('class', 'axis x-axis')
