@@ -21,7 +21,7 @@ jobs:
         with:
           repository: ${{ secrets.PRIVATE_DATA_REPO }}
           token: ${{ secrets.PRIVATE_REPO_TOKEN }}
-          path: csv
+          path: data
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
