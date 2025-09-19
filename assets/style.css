@@ -151,9 +151,24 @@ body {
     margin-top: 0.25rem;
 }
 
+:root {
+    --chart-font: clamp(11px, 1.2vmin, 18px);
+}
+
 .chart-container {
     height: 200px;
     margin-top: 1rem;
+    width: 100%;
+    display: block;
+}
+
+.chart-container svg {
+    width: 100%;
+    display: block;
+}
+
+.axis text, .target-label, .tooltip {
+    font-size: var(--chart-font);
 }
 
 .metric-meta {

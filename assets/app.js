@@ -11,34 +11,46 @@ Object.keys(metricsData).forEach(metricId => {
 });
 
 function createChart(metricId, metric) {
-    const metricCard = d3.select(`#chart-${metricId}`);
-    if (!metricCard.node()) return;
-
-    if (metric.config.chart_type === 'bar') {
-        createBarChart(metricId, metric);
-    } else {
-        createLineChart(metricId, metric);
-    }
-}
-
-function createLineChart(metricId, metric) {
     const container = d3.select(`#chart-${metricId}`);
-    const margin = {top: 10, right: 30, bottom: 30, left: 40};
-    const width = container.node().offsetWidth - margin.left - margin.right;
-    const height = 200 - margin.top - margin.bottom;
+    if (!container.node()) return;
 
-    const svg = container.append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom);
-
-    const g = svg.append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
+    const svg = container.append('svg');
+    const g = svg.append('g');
 
     const data = metric.data.map(d => ({
         date: new Date(d.date),
         value: +d.value
     }));
 
+    function render(w, h) {
+        g.selectAll("*").remove();
+
+        const margin = {top: 10, right: 30, bottom: 30, left: 40};
+        const innerW = Math.max(0, w - margin.left - margin.right);
+        const innerH = Math.max(0, h - margin.top - margin.bottom);
+
+        if (innerW <= 0 || innerH <= 0) return;
+
+        const layer = g.attr("transform", `translate(${margin.left},${margin.top})`);
+
+        if (metric.config.chart_type === 'bar') {
+            renderBarChart(layer, data, metric, innerW, innerH);
+        } else {
+            renderLineChart(layer, data, metric, innerW, innerH);
+        }
+    }
+
+    const ro = new ResizeObserver(entries => {
+        const rect = entries[0].contentRect;
+        const w = Math.max(1, Math.floor(rect.width));
+        const h = Math.max(1, Math.floor(rect.height || 200));
+        svg.attr("width", w).attr("height", h).attr("viewBox", `0 0 ${w} ${h}`);
+        render(w, h);
+    });
+    ro.observe(container.node());
+}
+
+function renderLineChart(layer, data, metric, width, height) {
     const xScale = d3.scaleTime()
         .domain(d3.extent(data, d => d.date))
         .range([0, width]);
@@ -62,19 +74,21 @@ function createLineChart(metricId, metric) {
 
     // Add axes with time-dimension-appropriate formatting
     const timeFormat = getTimeFormat(metric.config.time_dimension);
-    g.append('g')
+    layer.append('g')
+        .attr('class', 'axis x-axis')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom(xScale).tickFormat(timeFormat))
         .selectAll('text')
         .style('fill', '#888');
 
-    g.append('g')
+    layer.append('g')
+        .attr('class', 'axis y-axis')
         .call(d3.axisLeft(yScale).ticks(5))
         .selectAll('text')
         .style('fill', '#888');
 
     // Add grid lines
-    g.append('g')
+    layer.append('g')
         .attr('class', 'grid')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom(xScale)
@@ -90,7 +104,7 @@ function createLineChart(metricId, metric) {
         .y(d => yScale(d.value))
         .curve(d3.curveMonotoneX);
 
-    g.append('path')
+    layer.append('path')
         .datum(data)
         .attr('fill', 'none')
         .attr('stroke', '#4ECDC4')
@@ -98,7 +112,7 @@ function createLineChart(metricId, metric) {
         .attr('d', line);
 
     // Add dots
-    g.selectAll('.dot')
+    layer.selectAll('.dot')
         .data(data)
         .enter().append('circle')
         .attr('class', 'dot')
@@ -117,7 +131,7 @@ function createLineChart(metricId, metric) {
     if (metric.config.target) {
         const targetY = yScale(metric.config.target);
 
-        g.append('line')
+        layer.append('line')
             .attr('class', 'target-line')
             .attr('x1', 0)
             .attr('x2', width)
@@ -127,36 +141,18 @@ function createLineChart(metricId, metric) {
             .attr('stroke-width', 2)
             .attr('stroke-dasharray', '5,5');
 
-        g.append('text')
+        layer.append('text')
             .attr('class', 'target-label')
             .attr('x', width - 5)
             .attr('y', targetY - 5)
             .attr('text-anchor', 'end')
             .style('fill', '#FFD93D')
-            .style('font-size', '11px')
             .style('font-weight', '500')
             .text(`Target: ${numberWithDelimiter(metric.config.target)}`);
     }
 }
 
-function createBarChart(metricId, metric) {
-    const container = d3.select(`#chart-${metricId}`);
-    const margin = {top: 10, right: 30, bottom: 30, left: 40};
-    const width = container.node().offsetWidth - margin.left - margin.right;
-    const height = 200 - margin.top - margin.bottom;
-
-    const svg = container.append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom);
-
-    const g = svg.append('g')
-        .attr('transform', `translate(${margin.left},${margin.top})`);
-
-    const data = metric.data.map(d => ({
-        date: new Date(d.date),
-        value: +d.value
-    }));
-
+function renderBarChart(layer, data, metric, width, height) {
     const xScale = d3.scaleBand()
         .domain(data.map(d => d.date))
         .range([0, width])
@@ -178,19 +174,21 @@ function createBarChart(metricId, metric) {
         data.filter((d, i) => i % Math.ceil(data.length / maxTicks) === 0).map(d => d.date) :
         data.map(d => d.date);
 
-    g.append('g')
+    layer.append('g')
+        .attr('class', 'axis x-axis')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom(xScale).tickValues(tickValues).tickFormat(timeFormat))
         .selectAll('text')
         .style('fill', '#888');
 
-    g.append('g')
+    layer.append('g')
+        .attr('class', 'axis y-axis')
         .call(d3.axisLeft(yScale).ticks(5))
         .selectAll('text')
         .style('fill', '#888');
 
     // Add grid lines
-    g.append('g')
+    layer.append('g')
         .attr('class', 'grid')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisLeft(yScale)
@@ -201,7 +199,7 @@ function createBarChart(metricId, metric) {
         .style('opacity', 0.1);
 
     // Add bars
-    g.selectAll('.bar')
+    layer.selectAll('.bar')
         .data(data)
         .enter().append('rect')
         .attr('class', 'bar')
@@ -221,7 +219,7 @@ function createBarChart(metricId, metric) {
     if (metric.config.target) {
         const targetY = yScale(metric.config.target);
 
-        g.append('line')
+        layer.append('line')
             .attr('class', 'target-line')
             .attr('x1', 0)
             .attr('x2', width)
@@ -231,13 +229,12 @@ function createBarChart(metricId, metric) {
             .attr('stroke-width', 2)
             .attr('stroke-dasharray', '5,5');
 
-        g.append('text')
+        layer.append('text')
             .attr('class', 'target-label')
             .attr('x', width - 5)
             .attr('y', targetY - 5)
             .attr('text-anchor', 'end')
             .style('fill', '#FFD93D')
-            .style('font-size', '11px')
             .style('font-weight', '500')
             .text(`Target: ${numberWithDelimiter(metric.config.target)}`);
     }
