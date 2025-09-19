@@ -20,6 +20,13 @@ Personal metrics dashboard that models life activities as interconnected metrics
    cp /path/to/your/csv/files/* data/
    ```
 
+   Then, create your metrics config and env file:
+
+   ```
+   cp metrics.example.yaml metrics.yaml
+   cp .env.example .env
+   ```
+
 3. **Generate dashboard:**
    ```bash
    mise build
