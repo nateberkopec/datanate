@@ -10,18 +10,21 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Checkout private data
+        uses: actions/checkout@v5
         with:
-          submodules: true
-          token: ${{ secrets.SUBMODULE_TOKEN }}
+          repository: nateberkopec/datanate-data
+          path: csv
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.2'
+          ruby-version: '3.4'
           bundler-cache: true
 
       - name: Setup mise
