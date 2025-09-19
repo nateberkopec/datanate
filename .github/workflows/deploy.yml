@@ -16,9 +16,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Remove local data symlink
-        run: rm -f data
-
       - name: Checkout private data
         uses: actions/checkout@v5
         with:
