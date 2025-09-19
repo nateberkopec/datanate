@@ -79,20 +79,16 @@ class Datanate
     css_dest = File.join(@output_dir, 'style.css')
     FileUtils.cp(css_source, css_dest) if File.exist?(css_source)
 
-    # Copy JavaScript file
-    js_source = File.join('assets', 'app.js')
-    js_dest = File.join(@output_dir, 'app.js')
-    FileUtils.cp(js_source, js_dest) if File.exist?(js_source)
+    # JavaScript file is built directly to dist/ by Rollup
+    # No need to copy it here
 
     # Copy favicon
     favicon_source = File.join('assets', 'favicon.svg')
     favicon_dest = File.join(@output_dir, 'favicon.svg')
     FileUtils.cp(favicon_source, favicon_dest) if File.exist?(favicon_source)
 
-    # Copy D3 library from node_modules
-    d3_source = File.join('node_modules', 'd3', 'dist', 'd3.js')
-    d3_dest = File.join(@output_dir, 'd3.js')
-    FileUtils.cp(d3_source, d3_dest) if File.exist?(d3_source)
+    # The JavaScript bundle (including tree-shaken D3) is already copied above as app.js
+    # No separate D3 file needed
   end
 
   def report_success(output_file, metric_ids)

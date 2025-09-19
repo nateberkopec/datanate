@@ -12,7 +12,10 @@ run = [
 [tasks.build]
 description = "Generate the metrics dashboard"
 depends = ["setup"]
-run = "bundle exec rake generate"
+run = [
+    "npm run build-js",
+    "bundle exec rake generate"
+]
 
 [tasks.serve]
 description = "Serve the dashboard locally on port 8080"
