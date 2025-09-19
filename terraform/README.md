@@ -1,19 +1,20 @@
 # Terraform Infrastructure for Datanate Dashboard
 
-This Terraform configuration sets up the complete infrastructure for automatically deploying your Datanate dashboard to Cloudflare Pages with HTTP Basic Auth protection.
+This Terraform configuration sets up the complete infrastructure for automatically deploying your metrics dashboard to Cloudflare Pages with Cloudflare Access authentication.
 
 ## Architecture
 
 - **Cloudflare Pages**: Hosts the static dashboard
-- **Cloudflare Worker**: Provides HTTP Basic Auth protection
+- **Cloudflare Access**: Provides authentication protection for all domains
+- **Cloudflare R2**: Stores Terraform state remotely
 - **GitHub Actions**: Builds and deploys hourly + on commits
 
 ## Prerequisites
 
-1. **Cloudflare Account** with Pages and Workers enabled
+1. **Cloudflare Account** with Pages and Zero Trust (Access) enabled
 2. **Custom domain** added to your Cloudflare account (see below)
 3. **Terraform** installed locally
-4. **Node.js** installed (for wrangler CLI)
+4. **Private data repository** on GitHub with your CSV files
 
 ### Setting Up Your Custom Domain
 
@@ -29,9 +30,9 @@ You need a domain name managed by Cloudflare. This means:
 **That's it!** Just set the `TF_VAR_custom_domain` variable to your chosen subdomain. Terraform will automatically:
 - Create the DNS record pointing to Cloudflare Pages
 - Set up the custom domain in your Pages project
-- Configure the Worker route for authentication
+- Configure Cloudflare Access for both custom domain and all Pages deployment URLs
 
-**Important**: The domain must be fully managed by Cloudflare (orange-clouded) for the Worker authentication to work properly.
+**Important**: The domain must be fully managed by Cloudflare (orange-clouded) for authentication to work properly.
 
 **Example setup**:
 - You own: `mydomain.com`
@@ -47,22 +48,33 @@ You need a domain name managed by Cloudflare. This means:
    ```
 
 2. **Fill in your values** in `.env`:
-   - Get Cloudflare API token from: Dashboard > My Profile > API Tokens
-   - Get Account ID from: Dashboard > Right sidebar
-   - Get Zone ID from: Dashboard > Your Domain > Right sidebar
-   - Set your custom domain (must be added to Cloudflare first)
+   - `TF_VAR_cloudflare_api_token`: API token from Dashboard > My Profile > API Tokens (needs Pages:Edit, Zone:Edit, Access:Edit permissions)
+   - `TF_VAR_cloudflare_account_id`: Account ID from Dashboard > Right sidebar
+   - `TF_VAR_cloudflare_zone_id`: Zone ID from Dashboard > Your Domain > Right sidebar
+   - `TF_VAR_custom_domain`: Your custom subdomain (e.g., `dashboard.yourdomain.com`)
+   - `TF_VAR_project_name`: Your project name (e.g., `my-dashboard`)
+   - `TF_VAR_access_email`: Your email address for authentication access
+   - R2 credentials for Terraform state storage
 
-3. **Initialize and apply using mise:**
+3. **Create R2 bucket for Terraform state:**
+   - Go to Cloudflare Dashboard > R2 Object Storage
+   - Create bucket named `my-project-terraform-state` (or update `backend.hcl`)
+   - Create R2 API token with Object Read & Write permissions
+   - Update `backend.hcl` with your account ID
+
+4. **Initialize and apply using mise:**
    ```bash
-   mise tf-init
+   mise tf-init -backend-config=backend.hcl
    mise tf-plan
    mise tf-apply
    ```
 
-4. **Set GitHub Secrets** (for the GitHub Action):
+5. **Set GitHub Secrets** (for CI/CD):
    - `CLOUDFLARE_API_TOKEN`: Same token from .env
-   - `CLOUDFLARE_ACCOUNT_ID`: Same account ID from .env  
-   - `SUBMODULE_TOKEN`: GitHub token with repo access (if using private submodules)
+   - `CLOUDFLARE_ACCOUNT_ID`: Same account ID from .env
+   - `PRIVATE_DATA_REPO`: Your private data repository (e.g., `username/my-data`)
+   - `PRIVATE_REPO_TOKEN`: GitHub Personal Access Token with repo scope
+   - `PROJECT_NAME`: Same as `TF_VAR_project_name`
 
 ## Local Deployment
 
@@ -76,24 +88,38 @@ This will build and deploy your dashboard directly from your machine.
 
 ## Configuration
 
-### Custom Domain (Required)
-Set `TF_VAR_custom_domain` in .env to your desired subdomain. The domain must be added to your Cloudflare account first.
+### Required Variables
+- `TF_VAR_custom_domain`: Your custom subdomain (must be in Cloudflare)
+- `TF_VAR_project_name`: Unique project name for all resources
+- `TF_VAR_access_email`: Email address allowed to access the dashboard
 
 ### Authentication
-The worker enforces HTTP Basic Auth using the username/password from .env.
+Cloudflare Access provides authentication using:
+- Email verification (one-time PIN)
+- Social logins (Google, GitHub, etc.)
+- Corporate SSO (if configured)
+
+All deployment URLs are protected, including preview deployments.
 
 ## Outputs
 
 After `terraform apply`, you'll get:
-- `pages_url`: Direct Cloudflare Pages URL
-- `custom_domain_url`: Your custom domain URL (if configured)
-- `worker_script_name`: Name of the auth worker
+- `dashboard_url`: Your custom domain URL
+- `pages_subdomain`: Direct Cloudflare Pages URL (also protected)
+- `access_custom_domain`: Access application for custom domain
+- `access_deployments_domain`: Access application for all deployments
 
-## Security Notes
+## Security Features
 
-- Keep `.env` private (it's gitignored)
-- Use a strong password for HTTP Basic Auth
-- The API token should have minimal required permissions:
-  - Pages:Edit
-  - Workers:Edit  
-  - Zone:Edit (if using custom domain)
+- **Comprehensive protection**: Both custom domain and all `*.pages.dev` URLs are protected
+- **No public access**: All deployment previews require authentication
+- **Session management**: 30-day session duration for convenience
+- **Zero Trust integration**: Full Cloudflare Access features available
+
+## API Token Permissions
+
+Your Cloudflare API token needs these permissions:
+- `Pages:Edit` - Manage Pages projects
+- `Zone:Edit` - Manage DNS records for custom domain
+- `Access:Edit` - Manage Zero Trust Access applications
+- Zone resources must include your specific domain
