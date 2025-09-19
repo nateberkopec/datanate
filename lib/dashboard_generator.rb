@@ -1,9 +1,11 @@
 require 'erb'
 
 class DashboardGenerator
-  def initialize(metric_data, config)
+  def initialize(metric_data, config, asset_manifest = {}, d3_manifest = {})
     @metric_data = metric_data
     @config = config
+    @asset_manifest = asset_manifest
+    @d3_manifest = d3_manifest
   end
 
   def generate_html
@@ -46,6 +48,10 @@ class DashboardGenerator
     MetricData.number_with_delimiter(number)
   end
 
+  def asset_path(filename)
+    @asset_manifest[filename] || filename
+  end
+
   def generate_import_map
     require 'json'
 
@@ -58,7 +64,8 @@ class DashboardGenerator
 
     # Add D3 modules
     d3_modules.each do |module_name|
-      import_map['imports'][module_name] = "/d3/#{module_name}/index.js"
+      hashed_module_name = @d3_manifest[module_name] || module_name
+      import_map['imports'][module_name] = "/d3/#{hashed_module_name}/index.js"
     end
 
     # Add local modules dynamically (all assets/*.js files except app.js)
@@ -67,8 +74,8 @@ class DashboardGenerator
                   .reject { |file| file == 'app.js' }
 
     js_files.each do |filename|
-      module_name = filename.chomp('.js')
-      import_map['imports']["./#{filename}"] = "./#{filename}"
+      hashed_filename = asset_path(filename)
+      import_map['imports']["./#{filename}"] = "./#{hashed_filename}"
     end
 
     JSON.pretty_generate(import_map)

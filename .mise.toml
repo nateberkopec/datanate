@@ -17,7 +17,7 @@ run = "bundle exec rake generate"
 [tasks.serve]
 description = "Serve the dashboard locally with HTTP/2 and HTTPS"
 depends = ["setup"]
-run = "cd dist && caddy file-server --browse --listen :8080"
+run = "caddy run"
 
 [tasks.tf-plan]
 description = "Plan Terraform infrastructure changes"
