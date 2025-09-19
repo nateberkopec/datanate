@@ -15,7 +15,7 @@ categories:
 
 metrics:
   cycling_training_hours:
-    file: "csv/cycling_training_hours.csv"
+    file: "cycling_training_hours.csv"
     category: "cycling"
     type: "input"
     display_name: "Weekly Training Hours"
@@ -25,7 +25,7 @@ metrics:
       influenced_by: ["cycling_ftp", "cycling_race_points"]
 
   cycling_ftp:
-    file: "csv/cycling_ftp.csv"
+    file: "cycling_ftp.csv"
     category: "cycling"
     type: "intermediate"
     display_name: "FTP"
@@ -35,7 +35,7 @@ metrics:
       influences: ["cycling_training_hours"]
 
   cycling_race_points:
-    file: "csv/cycling_race_points.csv"
+    file: "cycling_race_points.csv"
     category: "cycling"
     type: "output"
     display_name: "Racing Points"
@@ -45,7 +45,7 @@ metrics:
       influences: ["cycling_training_hours"]
 
   work_value_events:
-    file: "csv/work_features_shipped.csv"
+    file: "work_features_shipped.csv"
     category: "work"
     type: "input"
     display_name: "Value Events"
@@ -55,7 +55,7 @@ metrics:
       influenced_by: ["work_customers"]
 
   work_customers:
-    file: "csv/work_customers.csv"
+    file: "work_customers.csv"
     category: "work"
     type: "intermediate"
     display_name: "Active Customers"
@@ -66,7 +66,7 @@ metrics:
       influences: ["work_value_events"]
 
   work_revenue:
-    file: "csv/work_revenue.csv"
+    file: "work_revenue.csv"
     category: "work"
     type: "output"
     display_name: "Monthly Revenue"

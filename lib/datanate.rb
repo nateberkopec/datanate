@@ -8,7 +8,7 @@ require 'metric_data'
 require 'dashboard_generator'
 
 class Datanate
-  def self.generate(config_file: 'metrics.yaml', output_dir: 'dist')
+  def self.generate(config_file: 'data/metrics.yaml', output_dir: 'dist')
     # Adjust paths when running from lib directory
     if __FILE__ == $0
       config_file = File.join('..', config_file) unless File.exist?(config_file)
@@ -53,17 +53,16 @@ class Datanate
   private
 
   def ensure_csv_dir
-    unless Dir.exist?('csv')
-      puts "ERROR: csv directory not found!"
+    unless Dir.exist?('data')
+      puts "ERROR: data directory not found!"
       puts ""
-      puts "You need to add your data as a git submodule:"
-      puts "  # Option 1: Local repository"
-      puts "  git submodule add ../your-private-metrics-data csv"
+      puts "You need to set up your data:"
+      puts "  # Option 1: Link to a local repository (symlink) - recommended for development"
+      puts "  ln -s ../your-private-metrics-data data"
       puts ""
-      puts "  # Option 2: Remote repository"
-      puts "  git submodule add https://github.com/yourusername/your-private-metrics-data.git csv"
+      puts "  # Option 2: Copy data files directly"
+      puts "  cp /path/to/your/csv/files/* data/"
       puts ""
-      puts "Then run: git submodule update --init --recursive"
       exit 1
     end
   end

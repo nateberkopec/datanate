@@ -23,7 +23,7 @@ Personal metrics dashboard that models life activities as interconnected metrics
    Then, create your metrics config and env file:
 
    ```
-   cp metrics.example.yaml metrics.yaml
+   cp metrics.example.yaml data/metrics.yaml
    cp .env.example .env
    ```
 
@@ -73,7 +73,7 @@ timestamp,value
 
 ## Configuration
 
-Edit `metrics.yaml` to define:
+Edit `data/metrics.yaml` to define:
 - Categories and their colors
 - Metric metadata (display names, units, targets)
 - CSV file paths for each metric
