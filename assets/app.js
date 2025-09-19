@@ -1,7 +1,7 @@
 import { select } from 'd3-selection';
-import { renderLineChart } from './lineChart.js';
-import { renderBarChart } from './barChart.js';
-import { createRelationshipDiagram } from './relationshipChart.js';
+import { renderLineChart } from 'lineChart.js';
+import { renderBarChart } from 'barChart.js';
+import { createRelationshipDiagram } from 'relationshipChart.js';
 
 const metricsData = window.metricsData;
 const relationships = window.relationships;

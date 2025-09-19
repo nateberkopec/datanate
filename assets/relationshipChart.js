@@ -7,7 +7,7 @@ import {
     forceCollide
 } from 'd3-force';
 import { drag } from 'd3-drag';
-import { getTierColor } from './helpers.js';
+import { getTierColor } from 'helpers.js';
 
 export function createRelationshipDiagram(metricsData, relationships) {
     // Get all unique categories

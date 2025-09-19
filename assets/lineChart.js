@@ -3,7 +3,7 @@ import { line, curveMonotoneX } from 'd3-shape';
 import { max, extent } from 'd3-array';
 import { axisBottom, axisLeft } from 'd3-axis';
 import { select } from 'd3-selection';
-import { getTimeFormat, numberWithDelimiter, showTooltip } from './helpers.js';
+import { getTimeFormat, numberWithDelimiter, showTooltip } from 'helpers.js';
 
 export function renderLineChart(layer, data, metric, width, height) {
     const xScale = scaleTime()

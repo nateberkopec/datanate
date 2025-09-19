@@ -2,7 +2,7 @@ import { scaleBand, scaleLinear } from 'd3-scale';
 import { max } from 'd3-array';
 import { axisBottom, axisLeft } from 'd3-axis';
 import { select } from 'd3-selection';
-import { getTimeFormat, numberWithDelimiter, showTooltip } from './helpers.js';
+import { getTimeFormat, numberWithDelimiter, showTooltip } from 'helpers.js';
 
 export function renderBarChart(layer, data, metric, width, height) {
     const xScale = scaleBand()

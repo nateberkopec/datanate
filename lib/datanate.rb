@@ -77,9 +77,14 @@ class Datanate
 
     @asset_manifest = {}
 
+    # Create assets output directory
+    assets_output_dir = File.join(@output_dir, 'assets')
+    FileUtils.mkdir_p(assets_output_dir)
+
     # Clean up old assets first
     old_assets = Dir.glob(File.join(@output_dir, '*-*.{css,js}')) +
-                 ['style.css', 'app.js', 'helpers.js', 'lineChart.js', 'barChart.js', 'relationshipChart.js'].map { |f| File.join(@output_dir, f) }
+                 Dir.glob(File.join(assets_output_dir, '*-*.{css,js}')) +
+                 ['style.css', 'app.js', 'helpers.js', 'lineChart.js', 'barChart.js', 'relationshipChart.js', 'd3.js', 'importmap.json'].map { |f| File.join(@output_dir, f) }
     old_assets.each { |f| File.delete(f) if File.exist?(f) }
 
     # Copy CSS file with hash
@@ -88,9 +93,9 @@ class Datanate
       content = File.read(css_source)
       hash = Digest::SHA256.hexdigest(content)[0,8]
       hashed_filename = "style-#{hash}.css"
-      css_dest = File.join(@output_dir, hashed_filename)
+      css_dest = File.join(assets_output_dir, hashed_filename)
       File.write(css_dest, content)
-      @asset_manifest['style.css'] = hashed_filename
+      @asset_manifest['style.css'] = "assets/#{hashed_filename}"
     end
 
     # Copy JavaScript files with hash
@@ -102,9 +107,9 @@ class Datanate
         hash = Digest::SHA256.hexdigest(content)[0,8]
         name = File.basename(file, '.js')
         hashed_filename = "#{name}-#{hash}.js"
-        js_dest = File.join(@output_dir, hashed_filename)
+        js_dest = File.join(assets_output_dir, hashed_filename)
         File.write(js_dest, content)
-        @asset_manifest[file] = hashed_filename
+        @asset_manifest[file] = "assets/#{hashed_filename}"
       end
     end
 

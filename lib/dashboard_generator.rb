@@ -22,8 +22,8 @@ class DashboardGenerator
       File.join('templates', filename),
       File.join('..', 'templates', filename)
     ]
-    
-    possible_paths.find { |path| File.exist?(path) } || 
+
+    possible_paths.find { |path| File.exist?(path) } ||
       raise("Template not found: #{filename}")
   end
 
@@ -75,7 +75,7 @@ class DashboardGenerator
 
     js_files.each do |filename|
       hashed_filename = asset_path(filename)
-      import_map['imports']["./#{filename}"] = "./#{hashed_filename}"
+      import_map['imports'][filename] = "/#{hashed_filename}"
     end
 
     JSON.pretty_generate(import_map)
