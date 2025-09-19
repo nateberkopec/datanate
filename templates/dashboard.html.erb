@@ -29,44 +29,48 @@
                 <div class="metric-card">
                     <div class="metric-header">
                         <div class="metric-info">
-                            <h4 class="metric-title"><%= metric[:config]['display_name'] %></h4>
-                            <span class="tier-indicator tier-<%= metric[:tier] %>">
-                                Tier <%= metric[:tier] %>
-                            </span>
-                            <% relationships = metric_relationships[metric[:id]] %>
-                            <% if relationships && (relationships['influenced_by'] || relationships['influences']) %>
-                            <div class="metric-relationships">
-                                <% if relationships['influences'] && !relationships['influences'].empty? %>
-                                <div class="relationship-group">
-                                    <span class="relationship-label">Influenced by:</span>
-                                    <span class="relationship-links">
-                                        <% relationships['influences'].each_with_index do |rel_id, idx| %>
-                                            <% rel_metric = @metric_data.find_by_id(rel_id) %>
-                                            <% if rel_metric %>
-                                                <a href="#chart-<%= rel_id %>" class="relationship-link"><%= rel_metric[:config]['display_name'] %></a><% if idx < relationships['influences'].length - 1 %>, <% end %>
+                            <div class="metric-title-row">
+                                <h4 class="metric-title"><%= metric[:config]['display_name'] %></h4>
+                                <span class="tier-indicator tier-<%= metric[:tier] %>">
+                                    Tier <%= metric[:tier] %>
+                                </span>
+                            </div>
+                            <div class="metric-details-row">
+                                <% relationships = metric_relationships[metric[:id]] %>
+                                <% if relationships && (relationships['influenced_by'] || relationships['influences']) %>
+                                <div class="metric-relationships">
+                                    <% if relationships['influences'] && !relationships['influences'].empty? %>
+                                    <div class="relationship-group">
+                                        <span class="relationship-label">Influenced by:</span>
+                                        <span class="relationship-links">
+                                            <% relationships['influences'].each_with_index do |rel_id, idx| %>
+                                                <% rel_metric = @metric_data.find_by_id(rel_id) %>
+                                                <% if rel_metric %>
+                                                    <a href="#chart-<%= rel_id %>" class="relationship-link"><%= rel_metric[:config]['display_name'] %></a><% if idx < relationships['influences'].length - 1 %>, <% end %>
+                                                <% end %>
                                             <% end %>
-                                        <% end %>
-                                    </span>
+                                        </span>
+                                    </div>
+                                    <% end %>
+                                    <% if relationships['influenced_by'] && !relationships['influenced_by'].empty? %>
+                                    <div class="relationship-group">
+                                        <span class="relationship-label">Influences:</span>
+                                        <span class="relationship-links">
+                                            <% relationships['influenced_by'].each_with_index do |rel_id, idx| %>
+                                                <% rel_metric = @metric_data.find_by_id(rel_id) %>
+                                                <% if rel_metric %>
+                                                    <a href="#chart-<%= rel_id %>" class="relationship-link"><%= rel_metric[:config]['display_name'] %></a><% if idx < relationships['influenced_by'].length - 1 %>, <% end %>
+                                                <% end %>
+                                            <% end %>
+                                        </span>
+                                    </div>
+                                    <% end %>
                                 </div>
                                 <% end %>
-                                <% if relationships['influenced_by'] && !relationships['influenced_by'].empty? %>
-                                <div class="relationship-group">
-                                    <span class="relationship-label">Influences:</span>
-                                    <span class="relationship-links">
-                                        <% relationships['influenced_by'].each_with_index do |rel_id, idx| %>
-                                            <% rel_metric = @metric_data.find_by_id(rel_id) %>
-                                            <% if rel_metric %>
-                                                <a href="#chart-<%= rel_id %>" class="relationship-link"><%= rel_metric[:config]['display_name'] %></a><% if idx < relationships['influenced_by'].length - 1 %>, <% end %>
-                                            <% end %>
-                                        <% end %>
-                                    </span>
-                                </div>
+                                <% if metric[:config]['target'] %>
+                                <div class="metric-target">Target: <%= number_with_delimiter(metric[:config]['target']) %></div>
                                 <% end %>
                             </div>
-                            <% end %>
-                            <% if metric[:config]['target'] %>
-                            <div class="metric-target">Target: <%= number_with_delimiter(metric[:config]['target']) %></div>
-                            <% end %>
                         </div>
                         <div class="metric-value">
                             <%= number_with_delimiter(metric[:latest_value]&.round(1) || 0) %>

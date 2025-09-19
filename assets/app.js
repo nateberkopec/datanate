@@ -173,9 +173,14 @@ function createBarChart(metricId, metric) {
 
     // Add axes
     const timeFormat = getTimeFormat(metric.config.time_dimension);
+    const maxTicks = 8;
+    const tickValues = data.length > maxTicks ?
+        data.filter((d, i) => i % Math.ceil(data.length / maxTicks) === 0).map(d => d.date) :
+        data.map(d => d.date);
+
     g.append('g')
         .attr('transform', `translate(0,${height})`)
-        .call(d3.axisBottom(xScale).tickFormat(timeFormat))
+        .call(d3.axisBottom(xScale).tickValues(tickValues).tickFormat(timeFormat))
         .selectAll('text')
         .style('fill', '#888');
 
