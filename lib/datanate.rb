@@ -14,7 +14,6 @@ class Datanate
       config_file = File.join('..', config_file) unless File.exist?(config_file)
       output_dir = File.join('..', output_dir) unless File.absolute_path(output_dir) == output_dir
     end
-    
     new(config_file, output_dir).generate
   end
 
@@ -61,7 +60,7 @@ class Datanate
       puts "  # Option 1: Local repository"
       puts "  git submodule add ../your-private-metrics-data csv"
       puts ""
-      puts "  # Option 2: Remote repository" 
+      puts "  # Option 2: Remote repository"
       puts "  git submodule add https://github.com/yourusername/your-private-metrics-data.git csv"
       puts ""
       puts "Then run: git submodule update --init --recursive"

@@ -41,4 +41,6 @@ depends = ["build"]
 run = "npx wrangler pages deploy dist --project-name=datanate-dashboard"
 
 [tools]
+ruby = "latest"
 terraform = "latest"
+watchexec = "latest"

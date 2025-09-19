@@ -32,7 +32,12 @@ Personal metrics dashboard that models life activities as interconnected metrics
    mise build
    ```
 
-4. **Serve locally:**
+4. **Development server with auto-rebuild:**
+   ```bash
+   overmind start
+   ```
+
+   Or serve manually:
    ```bash
    mise serve
    ```
@@ -81,6 +86,7 @@ The system automatically calculates tiers based on dependency relationships.
 - `mise setup` - Install dependencies
 - `mise build` - Generate static dashboard
 - `mise serve` - Serve dashboard locally on port 8080
+- `overmind start` - Start development server with auto-rebuild on file changes
 
 ## Architecture
 

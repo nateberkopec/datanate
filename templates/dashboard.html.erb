@@ -23,7 +23,7 @@
                 </h2>
                 <span class="category-description"><%= categories[category_key]['description'] %></span>
             </div>
-            
+
             <div class="metrics-grid">
                 <% types.values.flatten.sort_by { |m| m[:tier] }.each do |metric| %>
                 <div class="metric-card">
