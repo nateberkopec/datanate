@@ -104,3 +104,33 @@ resource "cloudflare_record" "pages_cname" {
   type    = "CNAME"
   proxied = true
 }
+
+# Cache rule for assets folder - cache forever with immutable assets
+resource "cloudflare_ruleset" "cache_assets_forever" {
+  zone_id     = var.cloudflare_zone_id
+  name        = "Cache assets forever"
+  description = "Cache hashed assets in /assets/* and /d3/* folders forever"
+  kind        = "zone"
+  phase       = "http_request_cache_settings"
+
+  rules {
+    action = "set_cache_settings"
+    action_parameters {
+      cache = true
+      edge_ttl {
+        mode    = "override_origin"
+        default = 31536000  # 1 year
+      }
+      browser_ttl {
+        mode    = "override_origin"
+        default = 31536000  # 1 year
+      }
+      serve_stale {
+        disable_stale_while_updating = false
+      }
+    }
+    expression = "(starts_with(http.request.uri.path, \"/assets/\") or starts_with(http.request.uri.path, \"/d3/\"))"
+    description = "Cache assets and d3 modules forever"
+    enabled = true
+  }
+}

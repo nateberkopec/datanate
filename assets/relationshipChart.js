@@ -44,7 +44,9 @@ function createCategoryDAG(category, metricsData, relationships) {
         .force('link', forceLink(links).id(d => d.id).distance(100))
         .force('charge', forceManyBody().strength(-300))
         .force('center', forceCenter(width / 2, height / 2))
-        .force('collision', forceCollide().radius(25));
+        .force('collision', forceCollide().radius(25))
+        .alphaDecay(0.05)  // Faster stabilization
+        .velocityDecay(0.8); // Reduce oscillation
 
     // Create links
     const link = svg.append('g')
@@ -118,6 +120,11 @@ function createCategoryDAG(category, metricsData, relationships) {
 
         node
             .attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+    // Stop simulation when it stabilizes
+    simulation.on('end', () => {
+        simulation.stop();
     });
 
     function dragstarted(event, d) {
