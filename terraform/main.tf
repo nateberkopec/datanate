@@ -5,10 +5,20 @@ terraform {
       version = "~> 4.0"
     }
   }
+
+  # Backend configuration will be added after initial setup
+  # Use: terraform init -backend-config=backend.hcl
 }
 
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
+}
+
+# R2 bucket for Terraform state
+resource "cloudflare_r2_bucket" "terraform_state" {
+  account_id = var.cloudflare_account_id
+  name       = "datanate-terraform-state"
+  location   = var.r2_location
 }
 
 # Cloudflare Pages project (direct upload, no git integration)
