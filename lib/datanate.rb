@@ -92,8 +92,8 @@ class Datanate
     FileUtils.cp(favicon_source, favicon_dest) if File.exist?(favicon_source)
 
     # Copy D3 library from node_modules
-    d3_source = File.join('node_modules', 'd3', 'dist', 'd3.min.js')
-    d3_dest = File.join(@output_dir, 'd3.min.js')
+    d3_source = File.join('node_modules', 'd3', 'dist', 'd3.js')
+    d3_dest = File.join(@output_dir, 'd3.js')
     FileUtils.cp(d3_source, d3_dest) if File.exist?(d3_source)
   end
 
