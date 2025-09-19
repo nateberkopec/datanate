@@ -1,7 +1,7 @@
 dist/
 .bundle/
 vendor/bundle/
-csv
+data
 
 # Node.js
 node_modules/
@@ -18,3 +18,4 @@ terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.*
 terraform/.terraform.lock.hcl
+data/
