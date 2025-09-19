@@ -32,3 +32,6 @@ run = "cd terraform && terraform init"
 description = "Deploy dashboard to Cloudflare Pages"
 depends = ["build"]
 run = "npx wrangler pages deploy dist --project-name=datanate-dashboard"
+
+[tools]
+terraform = "latest"

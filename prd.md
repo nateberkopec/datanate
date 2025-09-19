@@ -46,11 +46,12 @@ Build an automated static site generator that:
 #### 1. Data Input System
 - **CSV File Support**
   - One CSV file per metric
-  - Optional front matter for configuration
-  - Standardized column format for timestamp and values
+  - Pure CSV format (timestamp, value columns only)
+  - Private data via git submodules or symlinks
 - **YAML Configuration**
-  - Define metric relationships
-  - Specify display properties
+  - Centralized metric metadata in metrics.yaml
+  - Define metric relationships and dependencies
+  - Specify display properties, units, targets
   - Set metric categories and groupings
 
 #### 2. Metric Hierarchy
@@ -60,11 +61,12 @@ Build an automated static site generator that:
 - **Automatic Calculation**: Tier assignment is computed using topological sorting of the dependency graph
 
 #### 3. Visualization Components
-- **Time-series graphs** for each metric using D3.js
-- **Relationship diagrams** showing metric dependencies as interactive network graphs
-- **Category sections** grouping related metrics by life domain
+- **Time-series graphs** for each metric using D3.js with interactive tooltips
+- **Dendrogram visualization** showing metric dependencies as hierarchical trees
+- **Category sections** grouping related metrics by life domain  
 - **Tier-based organization** within categories (Tier 0 → Tier 1 → Tier N)
-- **DataDog-style visual design** with dark theme for familiarity
+- **DataDog-style visual design** with dark theme and responsive layout
+- **Custom favicon** representing metric relationships
 
 #### 4. Life Domain Categories
 - **Cycling**: FTP, racing points, weekly training hours
@@ -75,34 +77,58 @@ Build an automated static site generator that:
 
 ### Build & Deployment
 - **Static Site Generation**
-  - Hourly builds via CI/CD pipeline
-  - Pure HTML/CSS/JS output
+  - Hourly builds via GitHub Actions
+  - Pure HTML/CSS/JS output to dist/ directory
   - No server-side dependencies
-- **GitHub Actions Integration**
-  - Automated build triggers
-  - Deploy to GitHub Pages or similar
+- **Automated Deployment**
+  - GitHub Actions with Ruby/mise build pipeline
+  - Direct upload to Cloudflare Pages via wrangler
+  - HTTP Basic Auth protection via Cloudflare Workers
+- **Infrastructure as Code**
+  - Complete Terraform configuration for Cloudflare
+  - Environment variable management via mise
+  - Custom domain support with automatic DNS setup
 
 ## Technical Architecture
 
 ### Components
 1. **Data Layer**
-   - CSV files stored in repository
-   - YAML configuration files
-   - Integration scripts for external services
+   - CSV files stored in private repository/symlink
+   - Centralized YAML configuration (metrics.yaml)
+   - Clean separation of code and data
 
 2. **Build System**
-   - Ruby-based static site generator with ERB templating
-   - Automated tier calculation using topological sorting
-   - CSS framework for DataDog-like styling with dark theme
+   - Ruby-based modular architecture:
+     - lib/datanate.rb (main orchestrator)
+     - lib/metric_parser.rb (CSV parsing)
+     - lib/tier_calculator.rb (dependency analysis)
+     - lib/metric_data.rb (data formatting)
+     - lib/dashboard_generator.rb (HTML generation)
+   - ERB templating with helper methods
+   - Mise task management and environment handling
 
 3. **Frontend**
    - Responsive HTML/CSS with mobile-first design
-   - D3.js for interactive time-series charts and network diagrams
-   - Static file output for optimal performance and hosting
+   - D3.js for interactive charts and dendrogram visualization
+   - Category-first, tier-based organization
+   - Static file output optimized for CDN hosting
+
+4. **Infrastructure**
+   - Cloudflare Pages for hosting
+   - Cloudflare Workers for HTTP Basic Auth
+   - Terraform for infrastructure as code
+   - GitHub Actions for CI/CD pipeline
 
 ### Data Flow
 ```
-External Services → Integration Scripts → CSV Files → Ruby Generator → Tier Calculation → ERB Templates → Static HTML → Web Host
+Private CSV Data → Metric Parser → Tier Calculator → Metric Data Formatter → Dashboard Generator → Static HTML → Cloudflare Pages
+```
+
+### Development Workflow
+```
+Local: mise build → mise serve (development)
+Local: mise deploy (direct upload to Cloudflare)
+CI/CD: GitHub Actions → wrangler upload → Cloudflare Pages (hourly + on commits)
 ```
 
 ## Integration Points
@@ -131,31 +157,36 @@ External Services → Integration Scripts → CSV Files → Ruby Generator → T
 - Version control friendly (text files)
 
 ### Security
+- Private data separation via git submodules/symlinks
+- HTTP Basic Auth protection via Cloudflare Workers
+- Infrastructure secrets managed via environment variables
 - No sensitive data in public repository
-- Optional password protection for hosted site
-- Data anonymization options
 
 ## MVP Scope
 
 ### Phase 1 (MVP) ✅ COMPLETED
-- ✅ Basic CSV to HTML conversion with Ruby generator
-- ✅ D3.js time-series graphs for each metric
-- ✅ Manual CSV updates with YAML front matter support
-- ✅ Rake-based build automation (`rake generate`)
-- ✅ Mobile-responsive dark theme layout
-- ✅ Dynamic tier calculation based on metric dependencies
+- ✅ Modular Ruby-based static site generator
+- ✅ Pure CSV data format with centralized YAML config
+- ✅ D3.js time-series graphs with interactive tooltips
+- ✅ Dynamic tier calculation using topological sorting
+- ✅ Mobile-responsive dark theme with DataDog-inspired design
+- ✅ Mise task automation and environment management
 
-### Phase 2
-- ✅ Interactive metric relationship visualization (network diagram)
-- ✅ YAML-based configuration with categories and relationships
-- ✅ Metric grouping by category and tier
-- ⏳ First external integration (Intervals.icu)
+### Phase 2 ✅ COMPLETED  
+- ✅ Dendrogram visualization for metric relationships
+- ✅ Category-first, tier-based dashboard organization
+- ✅ Private data separation via symlinks
+- ✅ Complete CI/CD pipeline with GitHub Actions
+- ✅ Cloudflare Pages deployment with HTTP Basic Auth
+- ✅ Infrastructure as Code with Terraform
+- ✅ Custom domain support with automatic DNS
 
-### Phase 3
+### Phase 3 (Future)
+- First external integration (Intervals.icu)
 - Multiple data source integrations
-- Advanced visualizations and trend analysis
-- Export capabilities
-- Hourly build automation via CI/CD
+- Advanced trend analysis and forecasting
+- Export capabilities and data backup
+- Mobile app wrapper consideration
 
 ## Success Metrics for Product
 - Build reliability > 99%
@@ -165,15 +196,28 @@ External Services → Integration Scripts → CSV Files → Ruby Generator → T
 
 ## Open Questions
 1. ✅ Specific charting library preference → D3.js selected
-2. Hosting platform decision (GitHub Pages vs Netlify vs custom)?
-3. Authentication requirements for sensitive metrics?
+2. ✅ Hosting platform decision → Cloudflare Pages selected
+3. ✅ Authentication requirements → HTTP Basic Auth via Cloudflare Workers
 4. Backup and data retention policies?
 5. Mobile app wrapper consideration?
 6. Automated data collection frequency and reliability monitoring
+7. SLO monitoring and alerting for dashboard availability
 
-## Next Steps
-1. Create repository structure
-2. Build CSV parsing prototype
-3. Design DataDog-inspired UI mockups
-4. Set up GitHub Actions workflow
-5. Implement first metric visualization
+## Implementation Status ✅ COMPLETE
+
+The personal metrics dashboard has been fully implemented according to the PRD specifications:
+
+### ✅ Completed Implementation
+- **Modular Ruby architecture** with clean separation of concerns
+- **Dynamic tier system** based on metric dependency analysis  
+- **Interactive D3.js visualizations** with dendrogram relationship diagrams
+- **Complete CI/CD pipeline** with hourly automated deployments
+- **Production infrastructure** via Terraform and Cloudflare
+- **Security implementation** with HTTP Basic Auth protection
+- **Private data handling** via git submodules/symlinks
+
+### 🔄 Remaining Work (Phase 3)
+- External data source integrations (Intervals.icu, etc.)
+- Advanced analytics and trend forecasting
+- SLO monitoring and alerting
+- Demo deployment with sample data

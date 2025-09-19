@@ -11,9 +11,33 @@ This Terraform configuration sets up the complete infrastructure for automatical
 ## Prerequisites
 
 1. **Cloudflare Account** with Pages and Workers enabled
-2. **Custom domain** added to your Cloudflare account
+2. **Custom domain** added to your Cloudflare account (see below)
 3. **Terraform** installed locally
 4. **Node.js** installed (for wrangler CLI)
+
+### Setting Up Your Custom Domain
+
+You need a domain name managed by Cloudflare. This means:
+
+1. **Own a domain** (e.g., `yourdomain.com`) - purchased from any registrar
+2. **Transfer DNS to Cloudflare**:
+   - Add your domain to Cloudflare (Dashboard → Add Site)
+   - Update your domain's nameservers to point to Cloudflare
+   - Wait for DNS propagation (usually 24-48 hours)
+3. **Choose a subdomain** for your dashboard (e.g., `dashboard.yourdomain.com`)
+
+**That's it!** Just set the `TF_VAR_custom_domain` variable to your chosen subdomain. Terraform will automatically:
+- Create the DNS record pointing to Cloudflare Pages
+- Set up the custom domain in your Pages project
+- Configure the Worker route for authentication
+
+**Important**: The domain must be fully managed by Cloudflare (orange-clouded) for the Worker authentication to work properly.
+
+**Example setup**:
+- You own: `mydomain.com`
+- Cloudflare manages: `mydomain.com` DNS
+- Set variable: `TF_VAR_custom_domain=dashboard.mydomain.com`
+- Terraform creates everything automatically!
 
 ## Setup
 
