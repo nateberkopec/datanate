@@ -79,16 +79,49 @@ class Datanate
     css_dest = File.join(@output_dir, 'style.css')
     FileUtils.cp(css_source, css_dest) if File.exist?(css_source)
 
-    # JavaScript file is built directly to dist/ by Rollup
-    # No need to copy it here
+    # Copy JavaScript files
+    js_files = ['app.js', 'helpers.js', 'lineChart.js', 'barChart.js', 'relationshipChart.js']
+    js_files.each do |file|
+      js_source = File.join('assets', file)
+      js_dest = File.join(@output_dir, file)
+      FileUtils.cp(js_source, js_dest) if File.exist?(js_source)
+    end
 
     # Copy favicon
     favicon_source = File.join('assets', 'favicon.svg')
     favicon_dest = File.join(@output_dir, 'favicon.svg')
     FileUtils.cp(favicon_source, favicon_dest) if File.exist?(favicon_source)
 
-    # The JavaScript bundle (including tree-shaken D3) is already copied above as app.js
-    # No separate D3 file needed
+    # Copy D3 modules to dist/d3/
+    copy_d3_modules
+  end
+
+  def copy_d3_modules
+    require 'fileutils'
+    require 'json'
+
+    d3_dest_dir = File.join(@output_dir, 'd3')
+    FileUtils.rm_rf(d3_dest_dir) if Dir.exist?(d3_dest_dir)
+    FileUtils.mkdir_p(d3_dest_dir)
+
+    # Read package.json to get D3 dependencies dynamically
+    package_json = JSON.parse(File.read('package.json'))
+    d3_modules = package_json['dependencies'].keys.select { |name| name.start_with?('d3') || name == 'internmap' }
+
+    d3_modules.each do |module_name|
+      # Copy entire src directory to handle internal dependencies
+      module_src_dir = File.join('node_modules', module_name, 'src')
+      module_dest_dir = File.join(d3_dest_dir, module_name)
+
+      if Dir.exist?(module_src_dir)
+        FileUtils.mkdir_p(module_dest_dir)
+        FileUtils.cp_r(Dir.glob(File.join(module_src_dir, '*')), module_dest_dir)
+      else
+        puts "Warning: Could not find #{module_src_dir}"
+      end
+    end
+
+    puts "Copied #{d3_modules.length} D3 modules to #{d3_dest_dir}"
   end
 
   def report_success(output_file, metric_ids)

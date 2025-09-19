@@ -45,4 +45,32 @@ class DashboardGenerator
   def number_with_delimiter(number)
     MetricData.number_with_delimiter(number)
   end
+
+  def generate_import_map
+    require 'json'
+
+    # Read package.json to get D3 dependencies
+    package_json = JSON.parse(File.read('package.json'))
+    d3_modules = package_json['dependencies'].keys.select { |name| name.start_with?('d3') || name == 'internmap' }
+
+    # Generate import map
+    import_map = { 'imports' => {} }
+
+    # Add D3 modules
+    d3_modules.each do |module_name|
+      import_map['imports'][module_name] = "/d3/#{module_name}/index.js"
+    end
+
+    # Add local modules dynamically (all assets/*.js files except app.js)
+    js_files = Dir.glob('assets/*.js')
+                  .map { |file| File.basename(file) }
+                  .reject { |file| file == 'app.js' }
+
+    js_files.each do |filename|
+      module_name = filename.chomp('.js')
+      import_map['imports']["./#{filename}"] = "./#{filename}"
+    end
+
+    JSON.pretty_generate(import_map)
+  end
 end

@@ -6,6 +6,9 @@
     <title><%= @config['dashboard']['title'] %></title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
     <link rel="stylesheet" href="style.css"/>
+    <script type="importmap">
+<%= generate_import_map %>
+    </script>
 </head>
 <body>
     <div class="header">
@@ -100,6 +103,6 @@
         window.metricsData = <%= generate_js_data %>;
         window.relationships = <%= metric_relationships.to_json %>;
     </script>
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>
