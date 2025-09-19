@@ -4,7 +4,10 @@ _.file = ".env"
 
 [tasks.setup]
 description = "Install dependencies"
-run = "bundle install"
+run = [
+    "bundle install",
+    "npm install"
+]
 
 [tasks.build]
 description = "Generate the metrics dashboard"
