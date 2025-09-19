@@ -25,7 +25,14 @@ function createChart(metricId, metric) {
     function render(w, h) {
         g.selectAll("*").remove();
 
-        const margin = {top: 10, right: 30, bottom: 30, left: 40};
+        // Calculate dynamic left margin based on max y-value
+        const maxValue = d3.max(data, d => d.value);
+        const targetValue = metric.config.target || 0;
+        const displayMax = Math.max(maxValue, targetValue);
+        const labelWidth = displayMax.toString().length * 10 + 25; // More generous width estimate
+        const leftMargin = Math.max(50, Math.min(labelWidth, 100)); // Between 50-100px
+
+        const margin = {top: 10, right: 30, bottom: 30, left: leftMargin};
         const innerW = Math.max(0, w - margin.left - margin.right);
         const innerH = Math.max(0, h - margin.top - margin.bottom);
 
@@ -174,6 +181,17 @@ function renderBarChart(layer, data, metric, width, height) {
         data.filter((d, i) => i % Math.ceil(data.length / maxTicks) === 0).map(d => d.date) :
         data.map(d => d.date);
 
+    // Add grid lines first (so they appear behind bars)
+    layer.append('g')
+        .attr('class', 'grid')
+        .call(d3.axisLeft(yScale)
+            .ticks(5)
+            .tickSize(-width)
+            .tickFormat('')
+        )
+        .style('stroke-dasharray', '3,3')
+        .style('opacity', 0.1);
+
     layer.append('g')
         .attr('class', 'axis x-axis')
         .attr('transform', `translate(0,${height})`)
@@ -186,17 +204,6 @@ function renderBarChart(layer, data, metric, width, height) {
         .call(d3.axisLeft(yScale).ticks(5))
         .selectAll('text')
         .style('fill', '#888');
-
-    // Add grid lines
-    layer.append('g')
-        .attr('class', 'grid')
-        .attr('transform', `translate(0,${height})`)
-        .call(d3.axisLeft(yScale)
-            .tickSize(-width)
-            .tickFormat('')
-        )
-        .style('stroke-dasharray', '3,3')
-        .style('opacity', 0.1);
 
     // Add bars
     layer.selectAll('.bar')
